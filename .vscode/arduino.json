@@ -1,0 +1,7 @@
+{
+    "configuration": "FlashFreq=80,PartitionScheme=default,UploadSpeed=921600,DebugLevel=none",
+    "board": "esp32:esp32:esp32thing",
+    "sketch": "ESP32_fairylights.ino",
+    "port": "COM5",
+    "output": "e:/tmp/"
+}
