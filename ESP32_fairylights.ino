@@ -15,19 +15,23 @@ using namespace ace_button;
 #define H1_PIN 17
 #define H2_PIN 16
 
-#define animationDelay 5
-
-
 /**
  * Notes:
  *  counter mode MCPWM_UP_DOWN_COUNTER appears to halve the duty cycle of operator B? But not A? Somehow?
  *  But this doesn't actually matter if we're just setting A and B to the same duty cycle with one in active high, the other in active low?
+ *  Further note: we're actually using UP_DOWN now; it looks like this is related to the bug below, and the one in setSymmetricDutyTypes? All of these seem to work together to set incorrect duty cycles
  * 
- *  Why not 100% as the max duty cycle on PWMed animations? Because, somehow, it works the first time, but after using mcpwm_set_signal_low/mcpwm_set_signal_high, then transitioning back to PWM, 100% glitches out
+ *  Why not 100% as the max duty cycle on PWMed animations? Because, somehow, it works the first time, but after using mcpwm_set_signal_low/mcpwm_set_signal_high, then transitioning back to PWM, 100% glitches out,
+ *  see notes in setSymmetricDutyTypes() below
  */
 
 
 void setSymmetricDutyTypes() {
+  // hack to work around potential bug in ESP-idf code? It looks like we need to set these to whatever will be the active mode (active high / active low) once we resume duty cycle operation, or
+  // we'll run into the issue where the duty cycle for the one that was previously mcpwm_set_signal_<whatever_counts_as_active> will only have half of the expected duty cycle
+  mcpwm_set_signal_low(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_GEN_A);
+  mcpwm_set_signal_high(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_GEN_B);
+
   mcpwm_set_duty_type(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_GEN_A, MCPWM_DUTY_MODE_0); // set output A to active high...
   mcpwm_set_duty_type(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_GEN_B, MCPWM_DUTY_MODE_1); // ... and the matching output B to active low to get a symmetric signal
 }
@@ -71,8 +75,8 @@ public:
 
   virtual void transitionInto() {
     setSymmetricDutyTypes();
-    mcpwm_set_duty(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_GEN_A, 0.5f);
-    mcpwm_set_duty(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_GEN_B, 0.5f);
+    mcpwm_set_duty(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_GEN_A, 50.0f);
+    mcpwm_set_duty(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_GEN_B, 50.0f);
   };
 };
 

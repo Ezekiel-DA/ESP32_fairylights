@@ -8,6 +8,7 @@ AceButton modeButton(&modeButtonConfig);
 
 uint8_t modeNumber = 0;
 
+// TODO tie this to number of animations available, instead of hardcoding it!
 #define NUM_MODES 4
 
 void modeButtonEventHandler(AceButton* button, uint8_t eventType, uint8_t buttonState)
